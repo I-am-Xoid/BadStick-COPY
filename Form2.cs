@@ -35,6 +35,9 @@ namespace Xbox_360_BadUpdate_USB_Tool
             // Enable click-through for transparent areas
             this.SetStyle(ControlStyles.SupportsTransparentBackColor, true);
             
+            // Clean up any existing temp files on startup
+            CleanupTempFiles();
+            
             InitializeCheckBoxDict();
             LoadUsbDrives();
 
@@ -638,6 +641,9 @@ namespace Xbox_360_BadUpdate_USB_Tool
         
         private async void installButton_Click(object sender, EventArgs e)
         {
+            // Lock the UI during installation
+            LockUIForInstallation();
+            
             // Use the original installation process with modern UI feedback
             UpdateLogsTextBox("Starting installation process...");
             UpdateStatusLabel("Preparing installation...");
@@ -845,6 +851,92 @@ namespace Xbox_360_BadUpdate_USB_Tool
             emulatorsCheckbox.Enabled = enabled;
             homebrewCheckbox.Enabled = enabled;
             // cheatsCheckbox remains disabled as it's "coming soon"
+            
+            // Update button text based on state
+            if (enabled)
+            {
+                installButton.Text = "🚀 Install";
+            }
+            else
+            {
+                installButton.Text = "Installing...";
+            }
+        }
+        
+        private void LockUIForInstallation()
+        {
+            // Lock install button and change text
+            installButton.Enabled = false;
+            installButton.Text = "Installing...";
+            
+            // Lock checkboxes
+            emulatorsCheckbox.Enabled = false;
+            homebrewCheckbox.Enabled = false;
+            cheatsCheckbox.Enabled = false;
+            
+            // Lock other UI elements
+            customPathCheckbox.Enabled = false;
+            customPathTextbox.Enabled = false;
+            browseButton.Enabled = false;
+            DeviceList.Enabled = false;
+        }
+
+        private void CleanupTempFiles()
+        {
+            try
+            {
+                string tempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
+                if (Directory.Exists(tempFolder))
+                {
+                    // Force garbage collection first
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
+                    
+                    // Try to delete all temp files
+                    string[] files = Directory.GetFiles(tempFolder);
+                    foreach (string file in files)
+                    {
+                        try
+                        {
+                            File.SetAttributes(file, FileAttributes.Normal);
+                            File.Delete(file);
+                        }
+                        catch
+                        {
+                            // Ignore individual file deletion errors
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore cleanup errors
+            }
+        }
+
+        private void ForceUnlockFile(string filePath)
+        {
+            try
+            {
+                // Force garbage collection
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                
+                // Try to reset file attributes
+                if (File.Exists(filePath))
+                {
+                    File.SetAttributes(filePath, FileAttributes.Normal);
+                }
+                
+                // Additional wait
+                Thread.Sleep(1000);
+            }
+            catch
+            {
+                // Ignore errors
+            }
         }
 
 
@@ -868,6 +960,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             {
                 using (var client = new HttpClient())
                 {
+                    client.Timeout = TimeSpan.FromMinutes(10); // Increase timeout for large files
                     client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; BadStickTool/1.0)");
 
                     using (var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
@@ -882,10 +975,10 @@ namespace Xbox_360_BadUpdate_USB_Tool
                         var canReportProgress = total != -1 && progress != null;
 
                         using (var contentStream = await response.Content.ReadAsStreamAsync())
-                        using (var fileStream = new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+                        using (var fileStream = new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 2097152, FileOptions.SequentialScan))
                         {
                             var totalRead = 0L;
-                            var buffer = new byte[8192];
+                            var buffer = new byte[2097152]; // 2MB buffer for blazing fast downloads
                             int read;
                             while ((read = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                             {
@@ -898,6 +991,8 @@ namespace Xbox_360_BadUpdate_USB_Tool
                                     progress.Report(percent);
                                 }
                             }
+                            
+                            await fileStream.FlushAsync(); // Ensure all data is written immediately
                         }
                     }
                 }
@@ -912,64 +1007,115 @@ namespace Xbox_360_BadUpdate_USB_Tool
         {
             return Task.Run(() =>
             {
-                try
+                int maxRetries = 5;
+                int retryDelay = 2000; // 2 seconds
+                
+                // Force garbage collection to release any file handles
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                
+                for (int attempt = 0; attempt < maxRetries; attempt++)
                 {
-                    using (var archive = ZipFile.OpenRead(pkgFilePath))
+                    try
                     {
-                        int totalEntries = archive.Entries.Count;
-                        int processedEntries = 0;
-
-                        foreach (var entry in archive.Entries)
+                        // Wait a bit before retry attempts and force cleanup
+                        if (attempt > 0)
                         {
-                            string fullPath;
+                            Thread.Sleep(retryDelay * attempt);
+                            UpdateStatus($"Retrying extraction of {Path.GetFileName(pkgFilePath)} (attempt {attempt + 1}/{maxRetries})...");
                             
-                            // Only flatten Payload-XeUnshackle.zip to root, keep others in subfolders
-                            if (Path.GetFileName(pkgFilePath).Equals("Payload-XeUnshackle.zip", StringComparison.OrdinalIgnoreCase))
+                            // Force garbage collection between retries
+                            GC.Collect();
+                            GC.WaitForPendingFinalizers();
+                            GC.Collect();
+                        }
+                        
+                        using (var fileStream = new FileStream(pkgFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Read))
+                        {
+                            int totalEntries = archive.Entries.Count;
+                            int processedEntries = 0;
+
+                            foreach (var entry in archive.Entries)
                             {
-                                // Extract directly to USB root, flattening folder structure
-                                var fileName = Path.GetFileName(entry.FullName);
+                                string fullPath;
                                 
-                                // Skip empty entries (directories)
-                                if (string.IsNullOrEmpty(fileName))
-                                    continue;
-                                    
-                                fullPath = Path.Combine(destinationPath, fileName);
-                            }
-                            else
-                            {
-                                // Keep original folder structure for other packages
-                                fullPath = Path.Combine(destinationPath, entry.FullName);
-
-                                var directory = Path.GetDirectoryName(fullPath);
-
-                                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                                // Only flatten Payload-XeUnshackle.zip to root, keep others in subfolders
+                                if (Path.GetFileName(pkgFilePath).Equals("Payload-XeUnshackle.zip", StringComparison.OrdinalIgnoreCase) ||
+                                    Path.GetFileName(pkgFilePath).Equals("Payload-FreeMyXe.zip", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    Directory.CreateDirectory(directory);
+                                    // Extract payload files directly to root
+                                    fullPath = Path.Combine(destinationPath, entry.Name);
+                                }
+                                else
+                                {
+                                    // Extract directly to USB root, preserving the internal folder structure
+                                    fullPath = Path.Combine(destinationPath, entry.FullName);
+                                }
+
+                                if (entry.FullName.EndsWith("/"))
+                                {
+                                    Directory.CreateDirectory(fullPath);
+                                }
+                                else
+                                {
+                                    Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+                                    
+                                    // Extract with proper disposal
+                                    using (var entryStream = entry.Open())
+                                    using (var outputStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
+                                    {
+                                        entryStream.CopyTo(outputStream);
+                                    }
+                                }
+
+                                processedEntries++;
+
+                                if (progress != null)
+                                {
+                                    int percent = (int)((processedEntries * 100L) / totalEntries);
+                                    progress.Report(percent);
                                 }
                             }
-
-                            if (!string.IsNullOrEmpty(entry.Name))
-                            {
-                                entry.ExtractToFile(fullPath, overwrite: true);
-                            }
-
-                            processedEntries++;
-
-                            if (progress != null)
-                            {
-                                int percent = (int)((processedEntries * 100L) / totalEntries);
-                                progress.Report(percent);
-                            }
+                        }
+                        
+                        // If we get here, extraction was successful
+                        return;
+                    }
+                    catch (IOException ex) when (ex.Message.Contains("being used by another process"))
+                    {
+                        if (attempt == maxRetries - 1)
+                        {
+                            UpdateStatus($"Error: Could not access {Path.GetFileName(pkgFilePath)} after {maxRetries} attempts - file is locked by another process");
+                            UpdateStatus($"Try closing any other applications that might be using the file, or restart the application.");
+                            throw;
+                        }
+                        UpdateStatus($"File {Path.GetFileName(pkgFilePath)} is locked, forcing cleanup and waiting before retry...");
+                        
+                        // Try to force unlock the file
+                        try
+                        {
+                            ForceUnlockFile(pkgFilePath);
+                        }
+                        catch
+                        {
+                            // Ignore errors in force unlock
                         }
                     }
-                }
-                catch (InvalidDataException ex)
-                {
-                    UpdateStatus($"Warning: Could not extract {Path.GetFileName(pkgFilePath)} - file may be corrupted: {ex.Message}");
-                }
-                catch (Exception ex)
-                {
-                    UpdateStatus($"Error extracting {Path.GetFileName(pkgFilePath)}: {ex.Message}");
+                    catch (InvalidDataException ex)
+                    {
+                        UpdateStatus($"Warning: Could not extract {Path.GetFileName(pkgFilePath)} - file may be corrupted: {ex.Message}");
+                        return; // Don't retry for corrupted files
+                    }
+                    catch (Exception ex)
+                    {
+                        if (attempt == maxRetries - 1)
+                        {
+                            UpdateStatus($"Error extracting {Path.GetFileName(pkgFilePath)}: {ex.Message}");
+                            throw;
+                        }
+                    }
                 }
             });
         }
@@ -1224,12 +1370,13 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 {
                     try
                     {
-                        using (var archive = ZipFile.OpenRead(tempFilePath))
+                        using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Read))
                         {
                             needsDownload = false;
                         }
                     }
-                    catch
+                    catch (Exception)
                     {
                         needsDownload = true;
                     }
@@ -1238,10 +1385,12 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 if (needsDownload)
                 {
                     UpdateStatus($"Status: Downloading {pkg.FileName} ({currentPackageIndex}/{totalPackages})");
+                UpdateStatusLabel($"Downloading {pkg.FileName} ({currentPackageIndex}/{totalPackages})");
                     var downloadProgress = new Progress<int>(percent =>
                     {
                         int overallPercent = (int)(((currentPackageIndex - 1 + (percent / 100.0)) / totalPackages) * 100 * 0.5);
-                        // ProgressBar.Value = overallPercent;
+                        UpdateProgressBar(overallPercent);
+                        UpdateStatusLabel($"Downloading {pkg.FileName} - {percent}% ({currentPackageIndex}/{totalPackages})");
                     });
                     await DownloadFileAsync(pkg.DownloadUrl, tempFilePath, downloadProgress);
                 }
@@ -1263,10 +1412,12 @@ namespace Xbox_360_BadUpdate_USB_Tool
                     else
                     {
                         UpdateStatus($"Status: Extracting {pkg.FileName} ({currentPackageIndex}/{totalPackages})");
+                        UpdateStatusLabel($"Extracting {pkg.FileName} ({currentPackageIndex}/{totalPackages})");
                         var extractProgress = new Progress<int>(percent =>
                         {
                             int overallPercent = (int)(((currentPackageIndex - 1 + (percent / 100.0)) / totalPackages) * 100 * 0.5 + 50);
-                            // ProgressBar.Value = overallPercent;
+                            UpdateProgressBar(overallPercent);
+                            UpdateStatusLabel($"Extracting {pkg.FileName} - {percent}% ({currentPackageIndex}/{totalPackages})");
                         });
                         await ExtractPackageAsync(tempFilePath, usbRootPath, extractProgress);
                     }
@@ -1278,7 +1429,8 @@ namespace Xbox_360_BadUpdate_USB_Tool
             }
 
             UpdateStatus("Status: Done! USB Ready.");
-            // ProgressBar.Value = 100;
+            UpdateProgressBar(100);
+            UpdateStatusLabel("Installation completed successfully!");
         }
 
 
@@ -1330,58 +1482,25 @@ namespace Xbox_360_BadUpdate_USB_Tool
 
         private bool FormatDriveToFat32(string drivePath)
         {
-            try
-            {
-                string driveLetter = Path.GetPathRoot(drivePath).TrimEnd('\\');
-
-                string query = $"SELECT * FROM Win32_Volume WHERE DriveLetter = '{driveLetter}'";
-
-                using (var searcher = new ManagementObjectSearcher(query))
-                {
-                    var volumes = searcher.Get();
-
-                    foreach (ManagementObject volume in volumes)
-                    {
-                        var inParams = volume.GetMethodParameters("Format");
-                        inParams["FileSystem"] = "FAT32";
-                        inParams["QuickFormat"] = true;
-
-                        ManagementBaseObject outParams = volume.InvokeMethod("Format", inParams, null);
-
-                        uint returnValue = (uint)(outParams.Properties["ReturnValue"].Value);
-
-                        if (returnValue == 0)
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            MessageBox.Show($"Failed to format drive. WMI Format returned error code: {returnValue}", "Format Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            Debug.WriteLine($"Format failed with error code: {returnValue}");
-                            return false;
-                        }
-                    }
-                }
-
-                MessageBox.Show("Drive not found or inaccessible for formatting.", "BadStick Format Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error formatting drive: {ex.Message}", "BadStick Format Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
+            // FORMATTING DISABLED FOR SAFETY - This method now always returns true without formatting
+            UpdateStatus("Status: Skipping format (formatting disabled for safety)...");
+            return true;
         }
 
         private async void StartBtn_Click(object sender, EventArgs e)
         {
+            // Clean up temp files before starting
+            CleanupTempFiles();
+            
             // Lock the button and change text
             StartBtn.Enabled = false;
             StartBtn.Text = "Installing...";
             
             if (DeviceList.SelectedItem == null)
             {
-                MessageBox.Show("Please select a USB device.", "BadStick Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Failed to format the device.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateStatus("Status: Format failed");
+                SetUIEnabled(true);
                 StartBtn.Enabled = true;
                 StartBtn.Text = "Start";
                 return;
@@ -1405,45 +1524,16 @@ namespace Xbox_360_BadUpdate_USB_Tool
             if (string.IsNullOrEmpty(usbPath) || !Directory.Exists(usbPath))
             {
                 MessageBox.Show("Please select a valid USB device.", "BadStick Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SetUIEnabled(true);
                 StartBtn.Enabled = true;
                 StartBtn.Text = "Start";
                 return;
             }
 
-            if (!skipformatToggle.Checked)
-            {
-                var confirm = MessageBox.Show(
-                    $"Are you sure you want to select {usbPath} as your USB drive to format and configure? This will erase all data on the device. Please" +
-                    $" ensure that this is the device that you want to use before you go ahead. I am not responsible for any accidental " +
-                    $"data loss on your behalf.",
-                    "Confirm Format",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning);
-
-                if (confirm != DialogResult.Yes)
-                {
-                    UpdateStatus("Status: Format cancelled");
-                    StartBtn.Enabled = true;
-                    StartBtn.Text = "Start";
-                    return;
-                }
-
-                // ProgressBar.Value = 0;
-                bool formatSuccess = await Task.Run(() => FormatDriveToFat32(usbPath));
-                if (!formatSuccess)
-                {
-                    MessageBox.Show("Failed to format the device.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    UpdateStatus("Status: Format failed");
-                    StartBtn.Enabled = true;
-                    StartBtn.Text = "Start";
-                    return;
-                }
-                UpdateStatus("Status: Format completed. Starting downloads...");
-            }
-            else
-            {
-                UpdateStatus("Status: Skipping format (per user request)...");
-            }
+            // FORMATTING COMPLETELY DISABLED FOR SAFETY
+            UpdateStatus("Status: Skipping format (formatting disabled for safety)...");
+            UpdateStatusLabel("Skipping format (formatting disabled for safety)");
+            UpdateProgressBar(5);
 
             var packagesToDownload = GetSelectedPackages();
 
@@ -1496,9 +1586,18 @@ namespace Xbox_360_BadUpdate_USB_Tool
                         // Skip counting entries for launch.ini as it's not a zip file
                         if (!pkg.FileName.Equals("launch.ini", StringComparison.OrdinalIgnoreCase))
                         {
-                            using (var archive = ZipFile.OpenRead(tempFilePath))
+                            try
                             {
-                                _totalSteps += archive.Entries.Count;
+                                using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                                using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Read))
+                                {
+                                    _totalSteps += archive.Entries.Count;
+                                }
+                            }
+                            catch (IOException)
+                            {
+                                // File might be locked, skip counting for now
+                                UpdateStatus($"Warning: Could not count entries in {pkg.FileName} - file may be in use");
                             }
                         }
                     }
@@ -1513,7 +1612,8 @@ namespace Xbox_360_BadUpdate_USB_Tool
 
             var progress = new Progress<int>(percent =>
             {
-                // ProgressBar.Value = percent;
+                UpdateProgressBar(percent);
+                UpdateStatusLabel($"Processing packages - {percent}%");
             });
 
             // Separate payload packages from other packages (BadAvatar now downloads with others)
@@ -1538,12 +1638,17 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 await DownloadAndExtractPackagesAsync(payloadPackages, _checkBoxDict, usbPath, progress);
             }
 
+            UpdateProgressBar(100);
+            UpdateStatusLabel("Installation completed successfully!");
             MessageBox.Show(this, "Done. Your USB is ready to go, thank you for using BadStick. Now go plug it into the xbox 360 to start the Bad Update!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
             
             // Install BadAvatar.zip as final step
             await InstallBadAvatarAsync(usbPath);
-            
-            // Re-enable button after completion
+
+            await CountdownExitStatusAsync();
+
+            // Re-enable UI after completion
+            SetUIEnabled(true);
             StartBtn.Enabled = true;
             StartBtn.Text = "Start";
             
@@ -1556,6 +1661,8 @@ namespace Xbox_360_BadUpdate_USB_Tool
             try
             {
                 UpdateStatus("Status: Installing BadAvatar.zip...");
+                UpdateStatusLabel("Installing BadAvatar.zip...");
+                UpdateProgressBar(90);
                 
                 string appTempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
                 if (!Directory.Exists(appTempFolder))
@@ -1572,26 +1679,39 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 {
                     try
                     {
-                        using (var archive = ZipFile.OpenRead(tempFilePath))
+                        using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Read))
                         {
                             needsDownload = false;
                         }
                     }
-                    catch
+                    catch (Exception)
                     {
                         needsDownload = true;
                     }
                 }
-                
+
                 if (needsDownload)
                 {
-                    await DownloadFileAsync(downloadUrl, tempFilePath);
+                    var badAvatarDownloadProgress = new Progress<int>(percent =>
+                    {
+                        UpdateProgressBar(85 + (percent / 20)); // 85-90% range
+                        UpdateStatusLabel($"Downloading BadAvatar.zip - {percent}%");
+                    });
+                    await DownloadFileAsync(downloadUrl, tempFilePath, badAvatarDownloadProgress);
                 }
                 
                 if (File.Exists(tempFilePath))
                 {
-                    await ExtractPackageAsync(tempFilePath, usbPath);
+                    var badAvatarProgress = new Progress<int>(percent =>
+                    {
+                        UpdateProgressBar(90 + (percent / 10)); // 90-100% range
+                        UpdateStatusLabel($"Installing BadAvatar.zip - {percent}%");
+                    });
+                    await ExtractPackageAsync(tempFilePath, usbPath, badAvatarProgress);
                     UpdateStatus("Status: BadAvatar.zip installed successfully!");
+                    UpdateStatusLabel("BadAvatar.zip installed successfully!");
+                    UpdateProgressBar(100);
                 }
                 else
                 {
@@ -1925,6 +2045,21 @@ namespace Xbox_360_BadUpdate_USB_Tool
         }
 
         private void tabPage1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void progressBar_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void statusBar_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+        private void statusLabel_Click(object sender, EventArgs e)
         {
 
         }

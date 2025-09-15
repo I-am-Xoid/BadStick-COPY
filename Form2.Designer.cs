@@ -105,6 +105,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.haxfilesToggle = new System.Windows.Forms.CheckBox();
             this.xefuToggle = new System.Windows.Forms.CheckBox();
             this.origfilesToggle = new System.Windows.Forms.CheckBox();
+            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.driveSelectionPanel.SuspendLayout();
             this.optionsPanel.SuspendLayout();
             this.buttonsPanel.SuspendLayout();
@@ -320,11 +321,13 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.statusBar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
             this.statusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusLabel,
-            this.progressBar});
+            this.progressBar,
+            this.toolStripProgressBar1});
             this.statusBar.Location = new System.Drawing.Point(0, 3);
             this.statusBar.Name = "statusBar";
             this.statusBar.Size = new System.Drawing.Size(690, 22);
             this.statusBar.TabIndex = 1;
+            this.statusBar.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.statusBar_ItemClicked);
             // 
             // statusLabel
             // 
@@ -332,12 +335,14 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(39, 17);
             this.statusLabel.Text = "Ready";
+            this.statusLabel.Click += new System.EventHandler(this.statusLabel_Click);
             // 
             // progressBar
             // 
             this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(200, 16);
+            this.progressBar.Size = new System.Drawing.Size(550, 16);
             this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.progressBar.Click += new System.EventHandler(this.progressBar_Click);
             // 
             // logsTextBox
             // 
@@ -742,6 +747,11 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.origfilesToggle.Size = new System.Drawing.Size(104, 24);
             this.origfilesToggle.TabIndex = 0;
             // 
+            // toolStripProgressBar1
+            // 
+            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(600, 15);
+            // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -858,5 +868,6 @@ namespace Xbox_360_BadUpdate_USB_Tool
         
         // Modern UI Controls
         private System.Windows.Forms.ComboBox driveComboBox;
+        private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
     }
 }
