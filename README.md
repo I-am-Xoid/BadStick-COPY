@@ -29,4 +29,4 @@ It automates the **BadAvatar** process almost instantly, preparing a USB drive f
 
 **Dashboard Skins** It will have alot skins for dashbaords like Aroura and FreeStyle installed when the dashboard installs
 
-# ALL THIS WAS DONE WITH THE HELP OF AN AI CODING SOFTWARE I USE!
+# ALL THIS WAS DONE WITH THE HELP OF AN AI CODING SOFTWARE THAT I USE!
