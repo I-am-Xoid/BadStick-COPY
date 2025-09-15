@@ -1754,7 +1754,8 @@ namespace Xbox_360_BadUpdate_USB_Tool
             
             dashboards["Normal Xbox 360 Dashboard"] = "";
             
-            string dashboardsPath = Path.Combine("D:\\", "Dashboards");
+            string targetDrive = Path.GetPathRoot(usbPath);
+            string dashboardsPath = Path.Combine(targetDrive, "Dashboards");
             
             if (Directory.Exists(dashboardsPath))
             {
@@ -1763,12 +1764,12 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 foreach (string dashboardFolder in dashboardFolders)
                 {
                     string dashboardName = Path.GetFileName(dashboardFolder);
-                    string[] xexFiles = Directory.GetFiles(dashboardFolder, "*.xex");
+                    // Look specifically for {dashboard}.xex pattern
+                    string expectedXexFile = Path.Combine(dashboardFolder, dashboardName + ".xex");
                     
-                    if (xexFiles.Length > 0)
+                    if (File.Exists(expectedXexFile))
                     {
-                        string xexFile = xexFiles[0];
-                        string relativePath = GetRelativePath(usbPath, xexFile).Replace("\\", "/");
+                        string relativePath = GetRelativePath(usbPath, expectedXexFile).Replace("\\", "/");
                         dashboards[dashboardName] = relativePath;
                     }
                 }
