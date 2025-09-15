@@ -13,9 +13,11 @@ It automates the **BadAvatar** process almost instantly, preparing a USB drive f
 
 **UI** The UI Is completly different
 
+**Remoted Formating Option** I't wasn't working for me :(
+
 **All-In-One** It's all in one install button now (No checkboxes)
 
-**Defualt Dashboard** You can choose default dashboard easy for launch.ini
+**Defualt Dashboard** You can choose default dashboard easy for **launch.ini**
 
 **Plugins include** Plugins are already inside  **launch.ini**
 
