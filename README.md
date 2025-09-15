@@ -1,4 +1,4 @@
-# BadStick-COPY (I LEFT ALL CREDITS ALONE)
+# BadStick-COPY (I LEFT ALL CREDITS)
 
 **BadStick-COPY** is a customized version of [BadStick](https://github.com/32BitKlepto/BadStick), rebuilt with a new UI, all-in-one installer, emulation tools, more stealth server options, and other improvements.
 
