@@ -28,3 +28,5 @@ It automates the **BadAvatar** process almost instantly, preparing a USB drive f
 **Cheats** It will have cheats and trainers for alot of different games
 
 **Dashboard Skins** It will have alot skins for dashbaords like Aroura and FreeStyle installed when the dashboard installs
+
+# ALL THIS WAS DONE WITH THE HELP OF AN AI CODING SOFTWARE I USE!
