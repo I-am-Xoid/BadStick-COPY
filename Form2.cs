@@ -752,6 +752,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             new PackageInfo { FileName = "Xbox.One.Files.zip", CheckBoxName = "XB1Toggle", DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/Xbox.One.Files.zip" },
             new PackageInfo { FileName = "XEFU.Spoofer.zip", CheckBoxName = "xefuToggle", DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/XEFU.Spoofer.zip" },
             new PackageInfo { FileName = "Stealth.Networks.zip", CheckBoxName = null, DownloadUrl = "https://github.com/I-am-Xoid/badstick-test/releases/download/packages/Stealth.Networks.zip" },
+            new PackageInfo { FileName = "Homebrew.zip", CheckBoxName = null, DownloadUrl = "https://github.com/I-am-Xoid/badstick-test/releases/download/packages/Homebrew.zip" },
             new PackageInfo { FileName = "Emulation.zip", CheckBoxName = null, DownloadUrl = "https://github.com/I-am-Xoid/badstick-test/releases/download/packages/Emulation.zip" },
             new PackageInfo { FileName = "SystemUpdate.zip", CheckBoxName = null, DownloadUrl = "https://github.com/I-am-Xoid/badstick-test/releases/download/packages/SystemUpdate.zip" },
             new PackageInfo { FileName = "launch.ini", CheckBoxName = null, DownloadUrl = "https://github.com/I-am-Xoid/badstick-test/releases/download/packages/launch.ini" }
