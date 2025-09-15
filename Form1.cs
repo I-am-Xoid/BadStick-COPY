@@ -91,8 +91,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             }
             catch (Exception ex)
             {
-                // Silently ignore network errors for community notices
-                // MessageBox.Show($"Error retrieving message from server:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error retrieving message from server:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -193,14 +192,6 @@ namespace Xbox_360_BadUpdate_USB_Tool
             }
             else
             {
-                try
-                {
-                    await CheckForUpdatesAsync();
-                }
-                catch
-                {
-                    MessageBox.Show("Error: Unable to check for program updates.", "BadStick Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
                 this.Hide();
                 Form2 Next = new Form2();
                 Next.Show();

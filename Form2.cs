@@ -35,7 +35,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             InitializeCheckBoxDict();
             LoadUsbDrives();
 
-            ShelbyLabel.Text = "BadStick " + Form1.currentver + " Created By Shelby <3";
+            // ShelbyLabel.Text = "BadStick V1.0-Stable Created By Shelby <3";
             
             ConfigureWindow();
             SetDefaultStatesAndHideElements();
@@ -226,15 +226,15 @@ namespace Xbox_360_BadUpdate_USB_Tool
             groupBox4.ForeColor = xboxGreenLight;
             
             // Premium status strip with larger support text
-            statusStrip1.BackColor = Color.FromArgb(20, 20, 20);
-            statusStrip1.ForeColor = xboxGreenLight;
-            statusStrip1.Font = new Font("Segoe UI", 12, FontStyle.Regular);
+            // statusStrip1.BackColor = Color.FromArgb(25, 25, 25);
+            // statusStrip1.ForeColor = Color.White;
+            // statusStrip1.Font = new Font("Segoe UI", 12, FontStyle.Regular);
             
             // Make support button text larger
-            if (toolStripSplitButton1 != null)
-            {
-                toolStripSplitButton1.Font = new Font("Segoe UI", 12, FontStyle.Bold);
-            }
+            // if (toolStripSplitButton1 != null)
+            // {
+            //     toolStripSplitButton1.Font = new Font("Segoe UI", 12, FontStyle.Bold);
+            // }
             
             // Apply modern styling to all controls
             ApplyDarkThemeToControls(this.Controls);
@@ -276,8 +276,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.FormBorderStyle = FormBorderStyle.None;
             this.BackColor = Color.FromArgb(25, 25, 25);
             
-            // Add close button since we removed the title bar
-            AddCloseButton();
+            // Close button removed as requested
             
             if (BadStickIcon != null)
             {
@@ -321,34 +320,9 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 );
             }
             
-            if (ProgressBar != null)
-            {
-                ProgressBar.ForeColor = Color.FromArgb(107, 186, 24);
-                ProgressBar.Style = ProgressBarStyle.Continuous;
-                ProgressBar.Visible = true;
-                ProgressBar.Size = new Size(300, 16);
-            }
+            // Progress bar removed with status strip
             
             EnhanceButtonLayout();
-        }
-        
-        private void AddCloseButton()
-        {
-            Button closeButton = new Button();
-            closeButton.Text = "×";
-            closeButton.Size = new Size(30, 30);
-            closeButton.Location = new Point(this.Width - 35, 5);
-            closeButton.BackColor = Color.FromArgb(50, 50, 50);
-            closeButton.ForeColor = Color.White;
-            closeButton.FlatStyle = FlatStyle.Flat;
-            closeButton.FlatAppearance.BorderSize = 0;
-            closeButton.Font = new Font("Arial", 12, FontStyle.Bold);
-            closeButton.Click += (s, e) => this.Close();
-            closeButton.MouseEnter += (s, e) => closeButton.BackColor = Color.Red;
-            closeButton.MouseLeave += (s, e) => closeButton.BackColor = Color.FromArgb(50, 50, 50);
-            
-            this.Controls.Add(closeButton);
-            closeButton.BringToFront();
         }
         
         private void EnhanceButtonLayout()
@@ -484,7 +458,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             label8.Visible = false;
             
             // Hide status label - only show progress bar
-            StatusLabel.Visible = false;
+            // StatusLabel.Visible = false;
             
             // Hide other tabs except install tab
             tabControl1.TabPages.Remove(tabPage2); // Dashboards / Launchers
@@ -550,13 +524,12 @@ namespace Xbox_360_BadUpdate_USB_Tool
 
         private void UpdateStatus(string text)
         {
-            // Hide status text - only show progress bar
-            StatusLabel.Text = "";
+            // Status strip removed - no status updates
         }
 
         private void SetProgressBar(int percent)
         {
-            ProgressBar.Value = percent;
+            // ProgressBar.Value = percent;
         }
 
         private void LoadUsbDrives()
@@ -676,13 +649,31 @@ namespace Xbox_360_BadUpdate_USB_Tool
 
                         foreach (var entry in archive.Entries)
                         {
-                            var fullPath = Path.Combine(destinationPath, entry.FullName);
-
-                            var directory = Path.GetDirectoryName(fullPath);
-
-                            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                            string fullPath;
+                            
+                            // Only flatten Payload-XeUnshackle.zip to root, keep others in subfolders
+                            if (Path.GetFileName(pkgFilePath).Equals("Payload-XeUnshackle.zip", StringComparison.OrdinalIgnoreCase))
                             {
-                                Directory.CreateDirectory(directory);
+                                // Extract directly to USB root, flattening folder structure
+                                var fileName = Path.GetFileName(entry.FullName);
+                                
+                                // Skip empty entries (directories)
+                                if (string.IsNullOrEmpty(fileName))
+                                    continue;
+                                    
+                                fullPath = Path.Combine(destinationPath, fileName);
+                            }
+                            else
+                            {
+                                // Keep original folder structure for other packages
+                                fullPath = Path.Combine(destinationPath, entry.FullName);
+
+                                var directory = Path.GetDirectoryName(fullPath);
+
+                                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                                {
+                                    Directory.CreateDirectory(directory);
+                                }
                             }
 
                             if (!string.IsNullOrEmpty(entry.Name))
@@ -719,6 +710,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             public string DownloadUrl { get; set; }
             public bool AlwaysDownload => string.IsNullOrEmpty(CheckBoxName);
             public bool SkipDownload { get; set; } = false;
+            public bool ExtractToRoot { get; set; } = false;
         }
 
         private readonly List<PackageInfo> _allPackages = new List<PackageInfo>
@@ -731,8 +723,9 @@ namespace Xbox_360_BadUpdate_USB_Tool
             new PackageInfo { FileName = "HDDx Fixer.zip", CheckBoxName = "HDDxToggle", DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/HDDx Fixer.zip" },
             new PackageInfo { FileName = "IngeniouX.zip", CheckBoxName = "IngeniousXToggle", DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/IngeniouX.zip" },
             new PackageInfo { FileName = "NXE2GOD.zip", CheckBoxName = "NXE2GODToggle", DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/NXE2GOD.zip" },
-            new PackageInfo { FileName = "Payload-XeUnshackle.zip", CheckBoxName = "xeunshackleToggle", DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/Payload-XeUnshackle.zip" },
-            new PackageInfo { FileName = "Payload-FreeMyXe.zip", CheckBoxName = "freemyxeToggle", DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/Payload.zip" },
+            new PackageInfo { FileName = "Payload-XeUnshackle.zip", CheckBoxName = null, DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/Payload-XeUnshackle.zip", ExtractToRoot = true },
+            new PackageInfo { FileName = "Payload.zip", CheckBoxName = null, DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/Payload.zip", ExtractToRoot = true },
+            new PackageInfo { FileName = "BadAvatar.zip", CheckBoxName = null, DownloadUrl = "https://github.com/I-am-Xoid/badstick-test/releases/download/packages/BadAvatar.zip", ExtractToRoot = true },
             new PackageInfo { FileName = "RBB.zip", CheckBoxName = null, DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/RBB/RBB.zip" },
             new PackageInfo { FileName = "Viper360.zip", CheckBoxName = "Viper360Toggle", DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/Viper360.zip" },
             new PackageInfo { FileName = "Xenu.zip", CheckBoxName = "XenuToggle", DownloadUrl = "https://github.com/32BitKlepto/BadStick/releases/download/packages/Xenu.zip" },
@@ -838,7 +831,8 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 {
                     string[] mainFilesToSkip = {
                 "Payload-XeUnshackle.zip",
-                "Payload-FreeMyXe.zip",
+                "Payload.zip",
+                "BadAvatar.zip",
                 "XeXMenu.zip",
                 "RBB.zip"
             };
@@ -902,7 +896,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
                     var downloadProgress = new Progress<int>(percent =>
                     {
                         int overallPercent = (int)(((currentPackageIndex - 1 + (percent / 100.0)) / totalPackages) * 100 * 0.5);
-                        SetProgressBar(overallPercent);
+                        // ProgressBar.Value = overallPercent;
                     });
                     await DownloadFileAsync(pkg.DownloadUrl, tempFilePath, downloadProgress);
                 }
@@ -927,7 +921,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
                         var extractProgress = new Progress<int>(percent =>
                         {
                             int overallPercent = (int)(((currentPackageIndex - 1 + (percent / 100.0)) / totalPackages) * 100 * 0.5 + 50);
-                            SetProgressBar(overallPercent);
+                            // ProgressBar.Value = overallPercent;
                         });
                         await ExtractPackageAsync(tempFilePath, usbRootPath, extractProgress);
                     }
@@ -938,8 +932,8 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 }
             }
 
-            UpdateStatus("Status: All Downloads Completed");
-            SetProgressBar(100);
+            UpdateStatus("Status: Done! USB Ready.");
+            // ProgressBar.Value = 100;
         }
 
 
@@ -1053,8 +1047,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
                     return;
                 }
 
-                UpdateStatus("Status: Formatting device...");
-                ProgressBar.Value = 0;
+                // ProgressBar.Value = 0;
                 bool formatSuccess = await Task.Run(() => FormatDriveToFat32(usbPath));
                 if (!formatSuccess)
                 {
@@ -1137,16 +1130,33 @@ namespace Xbox_360_BadUpdate_USB_Tool
 
             var progress = new Progress<int>(percent =>
             {
-                ProgressBar.Value = percent;
+                // ProgressBar.Value = percent;
             });
 
-            await DownloadAndExtractPackagesAsync(packagesToDownload, _checkBoxDict, usbPath, progress);
+            // Separate both payload packages from other packages
+            var payloadPackages = packagesToDownload.Where(p => 
+                p.FileName.Equals("Payload-XeUnshackle.zip", StringComparison.OrdinalIgnoreCase) ||
+                p.FileName.Equals("Payload.zip", StringComparison.OrdinalIgnoreCase) ||
+                p.FileName.Equals("BadAvatar.zip", StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+            var otherPackages = packagesToDownload.Where(p => 
+                !p.FileName.Equals("Payload-XeUnshackle.zip", StringComparison.OrdinalIgnoreCase) &&
+                !p.FileName.Equals("Payload.zip", StringComparison.OrdinalIgnoreCase) &&
+                !p.FileName.Equals("BadAvatar.zip", StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+            
+            // Download and extract other packages first
+            await DownloadAndExtractPackagesAsync(otherPackages, _checkBoxDict, usbPath, progress);
 
             // Show dashboard selection popup and configure launch.ini
             await ConfigureDashboardAndStealthServer(usbPath);
+            
+            // Extract both payload packages last to ensure their contents are at root
+            if (payloadPackages.Any())
+            {
+                await DownloadAndExtractPackagesAsync(payloadPackages, _checkBoxDict, usbPath, progress);
+            }
 
-            UpdateStatus("Status: Done! USB Ready.");
-            ProgressBar.Value = 100;
             MessageBox.Show(this, "Done. Your USB is ready to go, thank you for using BadStick. Now go hax that xbox!11!!111!!1!11!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
             Thread.Sleep(500);
             await CountdownExitStatusAsync();

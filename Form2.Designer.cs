@@ -1,4 +1,4 @@
-﻿namespace Xbox_360_BadUpdate_USB_Tool
+namespace Xbox_360_BadUpdate_USB_Tool
 {
     partial class Form2
     {
@@ -32,11 +32,6 @@
             this.AuroraToggle = new System.Windows.Forms.CheckBox();
             this.FSDToggle = new System.Windows.Forms.CheckBox();
             this.StartBtn = new System.Windows.Forms.Button();
-            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.ShelbyLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.StatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.ProgressBar = new System.Windows.Forms.ToolStripProgressBar();
-            this.toolStripSplitButton1 = new System.Windows.Forms.ToolStripSplitButton();
             this.redditToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.badstickredditBtn = new System.Windows.Forms.ToolStripMenuItem();
             this.reddit360Btn = new System.Windows.Forms.ToolStripMenuItem();
@@ -108,7 +103,6 @@
             this.freemyxeToggle = new System.Windows.Forms.CheckBox();
             this.skiprbbToggle = new System.Windows.Forms.CheckBox();
             this.skipxexmenuToggle = new System.Windows.Forms.CheckBox();
-            this.statusStrip1.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -153,50 +147,7 @@
             this.StartBtn.Text = "Start";
             this.StartBtn.UseVisualStyleBackColor = true;
             this.StartBtn.Click += new System.EventHandler(this.StartBtn_Click);
-            // 
-            // statusStrip1
-            // 
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ShelbyLabel,
-            this.StatusLabel,
-            this.ProgressBar,
-            this.toolStripSplitButton1});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 416);
-            this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(724, 22);
-            this.statusStrip1.SizingGrip = false;
-            this.statusStrip1.TabIndex = 7;
-            this.statusStrip1.Text = "statusStrip1";
-            // 
-            // ShelbyLabel
-            // 
-            this.ShelbyLabel.Name = "ShelbyLabel";
-            this.ShelbyLabel.Size = new System.Drawing.Size(199, 17);
-            this.ShelbyLabel.Text = "BadStick V1.4B Created By Shelby <3";
-            // 
-            // StatusLabel
-            // 
-            this.StatusLabel.Name = "StatusLabel";
-            this.StatusLabel.Size = new System.Drawing.Size(73, 17);
-            this.StatusLabel.Text = "|  Status: Idle";
-            // 
-            // ProgressBar
-            // 
-            this.ProgressBar.Name = "ProgressBar";
-            this.ProgressBar.Size = new System.Drawing.Size(100, 16);
-            // 
-            // toolStripSplitButton1
-            // 
-            this.toolStripSplitButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolStripSplitButton1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.redditToolStripMenuItem,
-            this.githubpageBtn,
-            this.discordServerToolStripMenuItem});
-            this.toolStripSplitButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripSplitButton1.Image")));
-            this.toolStripSplitButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripSplitButton1.Name = "toolStripSplitButton1";
-            this.toolStripSplitButton1.Size = new System.Drawing.Size(65, 20);
-            this.toolStripSplitButton1.Text = "Support";
+            // Status strip components removed
             // 
             // redditToolStripMenuItem
             // 
@@ -997,7 +948,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(724, 438);
             this.Controls.Add(this.tabControl1);
-            this.Controls.Add(this.statusStrip1);
+            // this.Controls.Add(this.statusStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
@@ -1005,8 +956,6 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "BadStick Device Setup";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form2_FormClosing);
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             this.tabControl1.ResumeLayout(false);
@@ -1035,7 +984,7 @@
         private System.Windows.Forms.CheckBox AuroraToggle;
         private System.Windows.Forms.CheckBox FSDToggle;
         private System.Windows.Forms.Button StartBtn;
-        private System.Windows.Forms.StatusStrip statusStrip1;
+        // private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.Button ExitBtn;
         private System.Windows.Forms.ComboBox DeviceList;
         private System.Windows.Forms.CheckBox EmeraldToggle;
@@ -1052,8 +1001,8 @@
         private System.Windows.Forms.CheckBox FFPlayToggle;
         private System.Windows.Forms.CheckBox GODUnlockerToggle;
         private System.Windows.Forms.CheckBox XM360Toggle;
-        private System.Windows.Forms.ToolStripStatusLabel ShelbyLabel;
-        private System.Windows.Forms.ToolStripStatusLabel StatusLabel;
+        // private System.Windows.Forms.ToolStripStatusLabel ShelbyLabel;
+        // private System.Windows.Forms.ToolStripStatusLabel StatusLabel;
         private System.Windows.Forms.CheckBox ExitToggle;
         private System.Windows.Forms.CheckBox SelectAllToggle;
         private System.Windows.Forms.CheckBox PluginsToggle;
@@ -1092,9 +1041,9 @@
         private System.Windows.Forms.CheckBox xefuToggle;
         private System.Windows.Forms.CheckBox flasherToggle;
         private System.Windows.Forms.CheckBox tetheredToggle;
-        private System.Windows.Forms.ToolStripProgressBar ProgressBar;
+        // private System.Windows.Forms.ToolStripProgressBar ProgressBar;
         private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.ToolStripSplitButton toolStripSplitButton1;
+        // private System.Windows.Forms.ToolStripSplitButton toolStripSplitButton1;
         private System.Windows.Forms.ToolStripMenuItem redditToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem badstickredditBtn;
         private System.Windows.Forms.ToolStripMenuItem reddit360Btn;
