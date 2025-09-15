@@ -30,18 +30,11 @@ namespace Xbox_360_BadUpdate_USB_Tool
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form2));
             this.titleLabel = new System.Windows.Forms.Label();
-            this.driveSelectionPanel = new System.Windows.Forms.Panel();
             this.driveLabel = new System.Windows.Forms.Label();
-            this.DeviceList = new System.Windows.Forms.ComboBox();
             this.driveComboBox = new System.Windows.Forms.ComboBox();
             this.customPathCheckbox = new System.Windows.Forms.CheckBox();
             this.customPathTextbox = new System.Windows.Forms.TextBox();
             this.browseButton = new System.Windows.Forms.Button();
-            this.optionsPanel = new System.Windows.Forms.Panel();
-            this.emulatorsCheckbox = new System.Windows.Forms.CheckBox();
-            this.homebrewCheckbox = new System.Windows.Forms.CheckBox();
-            this.cheatsCheckbox = new System.Windows.Forms.CheckBox();
-            this.buttonsPanel = new System.Windows.Forms.Panel();
             this.installButton = new System.Windows.Forms.Button();
             this.discordButton = new System.Windows.Forms.Button();
             this.githubButton = new System.Windows.Forms.Button();
@@ -50,6 +43,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.statusBar = new System.Windows.Forms.StatusStrip();
             this.statusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.progressBar = new System.Windows.Forms.ToolStripProgressBar();
+            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.logsTextBox = new System.Windows.Forms.RichTextBox();
             this.StartBtn = new System.Windows.Forms.Button();
             this.ExitBtn = new System.Windows.Forms.Button();
@@ -105,10 +99,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.haxfilesToggle = new System.Windows.Forms.CheckBox();
             this.xefuToggle = new System.Windows.Forms.CheckBox();
             this.origfilesToggle = new System.Windows.Forms.CheckBox();
-            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            this.driveSelectionPanel.SuspendLayout();
-            this.optionsPanel.SuspendLayout();
-            this.buttonsPanel.SuspendLayout();
+            this.DeviceList = new System.Windows.Forms.ComboBox();
             this.statusPanel.SuspendLayout();
             this.statusBar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.BadStickIcon)).BeginInit();
@@ -117,47 +108,28 @@ namespace Xbox_360_BadUpdate_USB_Tool
             // titleLabel
             // 
             this.titleLabel.AutoSize = true;
+            this.titleLabel.BackColor = System.Drawing.Color.Transparent;
             this.titleLabel.Font = new System.Drawing.Font("Segoe UI", 28F, System.Drawing.FontStyle.Bold);
             this.titleLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(186)))), ((int)(((byte)(24)))));
-            this.titleLabel.Location = new System.Drawing.Point(124, 9);
+            this.titleLabel.Location = new System.Drawing.Point(256, 9);
             this.titleLabel.Name = "titleLabel";
-            this.titleLabel.Size = new System.Drawing.Size(553, 51);
+            this.titleLabel.Size = new System.Drawing.Size(353, 51);
             this.titleLabel.TabIndex = 0;
-            this.titleLabel.Text = "Xbox 360 BadStick Setup Tool";
-            // 
-            // driveSelectionPanel
-            // 
-            this.driveSelectionPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.driveSelectionPanel.Controls.Add(this.driveLabel);
-            this.driveSelectionPanel.Controls.Add(this.DeviceList);
-            this.driveSelectionPanel.Location = new System.Drawing.Point(30, 90);
-            this.driveSelectionPanel.Name = "driveSelectionPanel";
-            this.driveSelectionPanel.Size = new System.Drawing.Size(690, 80);
-            this.driveSelectionPanel.TabIndex = 2;
+            this.titleLabel.Text = "Xbox 360 BadStick";
+            this.titleLabel.Click += new System.EventHandler(this.titleLabel_Click);
             // 
             // driveLabel
             // 
             this.driveLabel.AutoSize = true;
+            this.driveLabel.BackColor = System.Drawing.Color.Transparent;
             this.driveLabel.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
             this.driveLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(186)))), ((int)(((byte)(24)))));
-            this.driveLabel.Location = new System.Drawing.Point(265, 0);
+            this.driveLabel.Location = new System.Drawing.Point(464, 334);
             this.driveLabel.Name = "driveLabel";
             this.driveLabel.Size = new System.Drawing.Size(182, 25);
             this.driveLabel.TabIndex = 0;
             this.driveLabel.Text = "Select Target Drive:";
-            // 
-            // DeviceList
-            // 
-            this.DeviceList.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(45)))));
-            this.DeviceList.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.DeviceList.Font = new System.Drawing.Font("Segoe UI", 11F);
-            this.DeviceList.ForeColor = System.Drawing.Color.White;
-            this.DeviceList.FormattingEnabled = true;
-            this.DeviceList.Location = new System.Drawing.Point(15, 45);
-            this.DeviceList.Name = "DeviceList";
-            this.DeviceList.Size = new System.Drawing.Size(661, 28);
-            this.DeviceList.TabIndex = 1;
-            this.DeviceList.SelectedIndexChanged += new System.EventHandler(this.DeviceList_SelectedIndexChanged);
+            this.driveLabel.Click += new System.EventHandler(this.driveLabel_Click);
             // 
             // driveComboBox
             // 
@@ -206,83 +178,21 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.browseButton.UseVisualStyleBackColor = false;
             this.browseButton.Click += new System.EventHandler(this.browseButton_Click);
             // 
-            // optionsPanel
-            // 
-            this.optionsPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
-            this.optionsPanel.Controls.Add(this.emulatorsCheckbox);
-            this.optionsPanel.Controls.Add(this.homebrewCheckbox);
-            this.optionsPanel.Controls.Add(this.cheatsCheckbox);
-            this.optionsPanel.Location = new System.Drawing.Point(30, 190);
-            this.optionsPanel.Name = "optionsPanel";
-            this.optionsPanel.Size = new System.Drawing.Size(690, 80);
-            this.optionsPanel.TabIndex = 3;
-            // 
-            // emulatorsCheckbox
-            // 
-            this.emulatorsCheckbox.AutoSize = true;
-            this.emulatorsCheckbox.Checked = true;
-            this.emulatorsCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.emulatorsCheckbox.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            this.emulatorsCheckbox.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(186)))), ((int)(((byte)(24)))));
-            this.emulatorsCheckbox.Location = new System.Drawing.Point(30, 25);
-            this.emulatorsCheckbox.Name = "emulatorsCheckbox";
-            this.emulatorsCheckbox.Size = new System.Drawing.Size(147, 29);
-            this.emulatorsCheckbox.TabIndex = 0;
-            this.emulatorsCheckbox.Text = "🎮 Emulators";
-            this.emulatorsCheckbox.UseVisualStyleBackColor = true;
-            // 
-            // homebrewCheckbox
-            // 
-            this.homebrewCheckbox.AutoSize = true;
-            this.homebrewCheckbox.Checked = true;
-            this.homebrewCheckbox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.homebrewCheckbox.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            this.homebrewCheckbox.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(186)))), ((int)(((byte)(24)))));
-            this.homebrewCheckbox.Location = new System.Drawing.Point(270, 25);
-            this.homebrewCheckbox.Name = "homebrewCheckbox";
-            this.homebrewCheckbox.Size = new System.Drawing.Size(157, 29);
-            this.homebrewCheckbox.TabIndex = 1;
-            this.homebrewCheckbox.Text = "🔧 Homebrew";
-            this.homebrewCheckbox.UseVisualStyleBackColor = true;
-            // 
-            // cheatsCheckbox
-            // 
-            this.cheatsCheckbox.AutoSize = true;
-            this.cheatsCheckbox.Enabled = false;
-            this.cheatsCheckbox.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
-            this.cheatsCheckbox.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(150)))), ((int)(((byte)(150)))));
-            this.cheatsCheckbox.Location = new System.Drawing.Point(494, 25);
-            this.cheatsCheckbox.Name = "cheatsCheckbox";
-            this.cheatsCheckbox.Size = new System.Drawing.Size(182, 29);
-            this.cheatsCheckbox.TabIndex = 2;
-            this.cheatsCheckbox.Text = "⚡ Cheats (Soon)";
-            this.cheatsCheckbox.UseVisualStyleBackColor = true;
-            // 
-            // buttonsPanel
-            // 
-            this.buttonsPanel.BackColor = System.Drawing.Color.Transparent;
-            this.buttonsPanel.Controls.Add(this.installButton);
-            this.buttonsPanel.Location = new System.Drawing.Point(30, 276);
-            this.buttonsPanel.Name = "buttonsPanel";
-            this.buttonsPanel.Size = new System.Drawing.Size(690, 149);
-            this.buttonsPanel.TabIndex = 4;
-            // 
             // installButton
             // 
-            this.installButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(186)))), ((int)(((byte)(24)))));
+            this.installButton.BackColor = System.Drawing.Color.Transparent;
             this.installButton.FlatAppearance.BorderSize = 0;
             this.installButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.installButton.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
+            this.installButton.Font = new System.Drawing.Font("Segoe UI Black", 26.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.installButton.ForeColor = System.Drawing.Color.Black;
-            this.installButton.Location = new System.Drawing.Point(182, 13);
+            this.installButton.Image = global::Xbox_360_BadStick.Properties.Resources.install;
+            this.installButton.Location = new System.Drawing.Point(233, 63);
             this.installButton.Name = "installButton";
-            this.installButton.Size = new System.Drawing.Size(318, 119);
+            this.installButton.Padding = new System.Windows.Forms.Padding(60);
+            this.installButton.Size = new System.Drawing.Size(376, 143);
             this.installButton.TabIndex = 0;
-            this.installButton.Text = "🚀 Install";
             this.installButton.UseVisualStyleBackColor = false;
             this.installButton.Click += new System.EventHandler(this.installButton_Click);
-            this.installButton.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.installButton.MouseLeave += new System.EventHandler(this.Button_MouseLeave);
             // 
             // discordButton
             // 
@@ -311,21 +221,21 @@ namespace Xbox_360_BadUpdate_USB_Tool
             // 
             this.statusPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
             this.statusPanel.Controls.Add(this.statusBar);
-            this.statusPanel.Location = new System.Drawing.Point(30, 425);
+            this.statusPanel.Location = new System.Drawing.Point(30, 477);
             this.statusPanel.Name = "statusPanel";
-            this.statusPanel.Size = new System.Drawing.Size(690, 25);
+            this.statusPanel.Size = new System.Drawing.Size(616, 30);
             this.statusPanel.TabIndex = 5;
             // 
             // statusBar
             // 
-            this.statusBar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(35)))), ((int)(((byte)(35)))), ((int)(((byte)(35)))));
+            this.statusBar.BackColor = System.Drawing.Color.Transparent;
             this.statusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusLabel,
             this.progressBar,
             this.toolStripProgressBar1});
-            this.statusBar.Location = new System.Drawing.Point(0, 3);
+            this.statusBar.Location = new System.Drawing.Point(0, 4);
             this.statusBar.Name = "statusBar";
-            this.statusBar.Size = new System.Drawing.Size(690, 22);
+            this.statusBar.Size = new System.Drawing.Size(616, 26);
             this.statusBar.TabIndex = 1;
             this.statusBar.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.statusBar_ItemClicked);
             // 
@@ -333,16 +243,21 @@ namespace Xbox_360_BadUpdate_USB_Tool
             // 
             this.statusLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(107)))), ((int)(((byte)(186)))), ((int)(((byte)(24)))));
             this.statusLabel.Name = "statusLabel";
-            this.statusLabel.Size = new System.Drawing.Size(39, 17);
+            this.statusLabel.Size = new System.Drawing.Size(39, 21);
             this.statusLabel.Text = "Ready";
             this.statusLabel.Click += new System.EventHandler(this.statusLabel_Click);
             // 
             // progressBar
             // 
             this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(550, 16);
+            this.progressBar.Size = new System.Drawing.Size(550, 20);
             this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progressBar.Click += new System.EventHandler(this.progressBar_Click);
+            // 
+            // toolStripProgressBar1
+            // 
+            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(600, 20);
             // 
             // logsTextBox
             // 
@@ -747,22 +662,32 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.origfilesToggle.Size = new System.Drawing.Size(104, 24);
             this.origfilesToggle.TabIndex = 0;
             // 
-            // toolStripProgressBar1
+            // DeviceList
             // 
-            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
-            this.toolStripProgressBar1.Size = new System.Drawing.Size(600, 15);
+            this.DeviceList.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(45)))));
+            this.DeviceList.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.DeviceList.Font = new System.Drawing.Font("Segoe UI", 11F);
+            this.DeviceList.ForeColor = System.Drawing.Color.White;
+            this.DeviceList.FormattingEnabled = true;
+            this.DeviceList.Location = new System.Drawing.Point(396, 362);
+            this.DeviceList.Name = "DeviceList";
+            this.DeviceList.Size = new System.Drawing.Size(342, 28);
+            this.DeviceList.TabIndex = 1;
+            this.DeviceList.SelectedIndexChanged += new System.EventHandler(this.DeviceList_SelectedIndexChanged);
             // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(20)))), ((int)(((byte)(20)))));
-            this.ClientSize = new System.Drawing.Size(750, 470);
+            this.BackgroundImage = global::Xbox_360_BadStick.Properties.Resources.desktop_wallpaper_xbox_logo_xbox_360;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.ClientSize = new System.Drawing.Size(750, 519);
+            this.Controls.Add(this.DeviceList);
+            this.Controls.Add(this.driveLabel);
             this.Controls.Add(this.titleLabel);
-            this.Controls.Add(this.driveSelectionPanel);
-            this.Controls.Add(this.optionsPanel);
-            this.Controls.Add(this.buttonsPanel);
             this.Controls.Add(this.statusPanel);
+            this.Controls.Add(this.installButton);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
@@ -770,11 +695,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Xbox 360 BadStick Tool";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form2_FormClosing);
-            this.driveSelectionPanel.ResumeLayout(false);
-            this.driveSelectionPanel.PerformLayout();
-            this.optionsPanel.ResumeLayout(false);
-            this.optionsPanel.PerformLayout();
-            this.buttonsPanel.ResumeLayout(false);
+            this.Load += new System.EventHandler(this.Form2_Load);
             this.statusPanel.ResumeLayout(false);
             this.statusPanel.PerformLayout();
             this.statusBar.ResumeLayout(false);
@@ -789,16 +710,10 @@ namespace Xbox_360_BadUpdate_USB_Tool
         
         // Modern UI Controls
         private System.Windows.Forms.Label titleLabel;
-        private System.Windows.Forms.Panel driveSelectionPanel;
         private System.Windows.Forms.Label driveLabel;
         private System.Windows.Forms.CheckBox customPathCheckbox;
         private System.Windows.Forms.TextBox customPathTextbox;
         private System.Windows.Forms.Button browseButton;
-        private System.Windows.Forms.Panel optionsPanel;
-        private System.Windows.Forms.CheckBox emulatorsCheckbox;
-        private System.Windows.Forms.CheckBox homebrewCheckbox;
-        private System.Windows.Forms.CheckBox cheatsCheckbox;
-        private System.Windows.Forms.Panel buttonsPanel;
         private System.Windows.Forms.Button installButton;
         private System.Windows.Forms.Button discordButton;
         private System.Windows.Forms.Button githubButton;
@@ -819,7 +734,6 @@ namespace Xbox_360_BadUpdate_USB_Tool
         private System.Windows.Forms.Button StartBtn;
         private System.Windows.Forms.Button ExitBtn;
         private System.Windows.Forms.Button RefDrivesBtn;
-        private System.Windows.Forms.ComboBox DeviceList;
         private System.Windows.Forms.PictureBox BadStickIcon;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label InfoLabel;
@@ -869,5 +783,6 @@ namespace Xbox_360_BadUpdate_USB_Tool
         // Modern UI Controls
         private System.Windows.Forms.ComboBox driveComboBox;
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
+        private System.Windows.Forms.ComboBox DeviceList;
     }
 }

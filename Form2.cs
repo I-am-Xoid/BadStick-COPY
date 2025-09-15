@@ -24,7 +24,6 @@ namespace Xbox_360_BadUpdate_USB_Tool
         public bool DriveSet = true;
         public string DevicePath = "";
         private int _totalSteps;
-        private int _currentStep;
         private Dictionary<string, CheckBox> _checkBoxDict;
         private string _selectedStealthServerPath = ""; 
 
@@ -37,6 +36,9 @@ namespace Xbox_360_BadUpdate_USB_Tool
             
             // Clean up any existing temp files on startup
             CleanupTempFiles();
+            
+            // Ensure background image is available
+            _ = EnsureBackgroundImageAsync();
             
             InitializeCheckBoxDict();
             LoadUsbDrives();
@@ -187,8 +189,6 @@ namespace Xbox_360_BadUpdate_USB_Tool
         private void SetupModernPanels()
         {
             // Add subtle border radius effect to panels
-            driveSelectionPanel.Paint += Panel_Paint;
-            optionsPanel.Paint += Panel_Paint;
             statusPanel.Paint += Panel_Paint;
         }
         
@@ -207,8 +207,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
         
         private void SetupAnimations()
         {
-            // Setup hover animations for all buttons
-            SetupButtonHoverEffect(installButton);
+            // Setup hover animations for all buttons (except install button)
             SetupButtonHoverEffect(discordButton);
             SetupButtonHoverEffect(githubButton);
             SetupButtonHoverEffect(supportButton);
@@ -233,6 +232,77 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 button.Font = originalFont;
                 button.FlatAppearance.BorderSize = 0;
             };
+        }
+        
+        private async Task EnsureBackgroundImageAsync()
+        {
+            try
+            {
+                string resourcesPath = Path.Combine(Application.StartupPath, "Resources");
+                string backgroundImagePath = Path.Combine(resourcesPath, "desktop-wallpaper-xbox-logo-xbox-360.jpg");
+                string installImagePath = Path.Combine(resourcesPath, "install.png");
+                
+                // Create Resources directory if it doesn't exist
+                if (!Directory.Exists(resourcesPath))
+                {
+                    Directory.CreateDirectory(resourcesPath);
+                }
+                
+                // Check if the background image exists
+                if (!File.Exists(backgroundImagePath))
+                {
+                    // Download the background image
+                    string downloadUrl = "https://github.com/I-am-Xoid/badstick-test/releases/download/packages/desktop-wallpaper-xbox-logo-xbox-360.jpg";
+                    await DownloadFileAsync(downloadUrl, backgroundImagePath);
+                    
+                    // Refresh the background image if download was successful
+                    if (File.Exists(backgroundImagePath))
+                    {
+                        this.Invoke(new Action(() =>
+                        {
+                            try
+                            {
+                                // Reload the background image
+                                this.BackgroundImage = Image.FromFile(backgroundImagePath);
+                                this.BackgroundImageLayout = ImageLayout.Stretch;
+                            }
+                            catch
+                            {
+                                // If loading fails, keep the existing background
+                            }
+                        }));
+                    }
+                }
+                
+                // Check if the install button image exists
+                if (!File.Exists(installImagePath))
+                {
+                    // Download the install button image
+                    string installDownloadUrl = "https://github.com/I-am-Xoid/badstick-test/releases/download/packages/install.png";
+                    await DownloadFileAsync(installDownloadUrl, installImagePath);
+                    
+                    // Refresh the install button image if download was successful
+                    if (File.Exists(installImagePath))
+                    {
+                        this.Invoke(new Action(() =>
+                        {
+                            try
+                            {
+                                // Reload the install button image
+                                installButton.Image = Image.FromFile(installImagePath);
+                            }
+                            catch
+                            {
+                                // If loading fails, keep the existing button
+                            }
+                        }));
+                    }
+                }
+            }
+            catch
+            {
+                // If download fails, continue without images
+            }
         }
         
         private void LoadBadStickIcon()
@@ -639,7 +709,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             }
         }
         
-        private async void installButton_Click(object sender, EventArgs e)
+        private void installButton_Click(object sender, EventArgs e)
         {
             // Lock the UI during installation
             LockUIForInstallation();
@@ -831,12 +901,9 @@ namespace Xbox_360_BadUpdate_USB_Tool
         {
             var selected = new List<string>();
             
-            if (emulatorsCheckbox.Checked)
-                selected.Add("Emulators");
-            if (homebrewCheckbox.Checked)
-                selected.Add("Homebrew");
-            if (cheatsCheckbox.Checked)
-                selected.Add("Cheats");
+            // Always install all packages since checkboxes are removed
+            selected.Add("Emulators");
+            selected.Add("Homebrew");
                 
             return selected;
         }
@@ -848,9 +915,6 @@ namespace Xbox_360_BadUpdate_USB_Tool
             customPathTextbox.Enabled = enabled && customPathCheckbox.Checked;
             browseButton.Enabled = enabled && customPathCheckbox.Checked;
             DeviceList.Enabled = enabled && !customPathCheckbox.Checked;
-            emulatorsCheckbox.Enabled = enabled;
-            homebrewCheckbox.Enabled = enabled;
-            // cheatsCheckbox remains disabled as it's "coming soon"
             
             // Update button text based on state
             if (enabled)
@@ -869,10 +933,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             installButton.Enabled = false;
             installButton.Text = "Installing...";
             
-            // Lock checkboxes
-            emulatorsCheckbox.Enabled = false;
-            homebrewCheckbox.Enabled = false;
-            cheatsCheckbox.Enabled = false;
+            // Lock checkboxes - removed since checkboxes no longer exist
             
             // Lock other UI elements
             customPathCheckbox.Enabled = false;
@@ -1213,12 +1274,8 @@ namespace Xbox_360_BadUpdate_USB_Tool
         }
         private List<PackageInfo> GetSelectedPackages()
         {
-            // Modern UI: Map the new checkboxes to the original package system
-            if (emulatorsCheckbox != null && homebrewCheckbox != null)
-            {
-                // Enable/disable packages based on modern UI selections
-                UpdateLegacyCheckboxes();
-            }
+            // Modern UI: Always enable all packages since checkboxes are removed
+            UpdateLegacyCheckboxes();
             
             return _allPackages.Where(pkg =>
                 pkg.AlwaysDownload ||
@@ -1245,50 +1302,9 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 checkbox.Checked = true;
             }
             
-            // Now apply category-based filtering
-            if (emulatorsCheckbox.Checked)
-            {
-                // Keep emulator/dashboard packages enabled (already set to true above)
-                // These include: Aurora, FSD, Emerald, IngeniouX, Viper360, XeXLoader, Xenu
-            }
-            else
-            {
-                // Disable emulator/dashboard packages when category is deselected
-                if (_checkBoxDict.ContainsKey("AuroraToggle")) AuroraToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("FSDToggle")) FSDToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("EmeraldToggle")) EmeraldToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("IngeniouXToggle")) IngeniouXToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("Viper360Toggle")) Viper360Toggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("XeXLoaderToggle")) XeXLoaderToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("XenuToggle")) XenuToggle.Checked = false;
-            }
-            
-            if (homebrewCheckbox.Checked)
-            {
-                // Keep homebrew packages enabled (already set to true above)
-                // These include: FFPlay, GODUnlocker, XM360, HDDx, XNA, NXE2GOD, XPG, flasher, Plugins, xnotify
-            }
-            else
-            {
-                // Disable homebrew packages when category is deselected
-                if (_checkBoxDict.ContainsKey("FFPlayToggle")) FFPlayToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("GODUnlockerToggle")) GODUnlockerToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("XM360Toggle")) XM360Toggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("HDDxToggle")) HDDxToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("XNAToggle")) XNAToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("NXE2GODToggle")) NXE2GODToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("XPGToggle")) XPGToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("flasherToggle")) flasherToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("PluginsToggle")) PluginsToggle.Checked = false;
-                if (_checkBoxDict.ContainsKey("xnotifyToggle")) xnotifyToggle.Checked = false;
-            }
-            
-            // Cheats category - for future implementation
-            if (!cheatsCheckbox.Checked)
-            {
-                // Disable cheat-related packages when category is deselected
-                // Add cheat package toggles here when they become available
-            }
+            // All packages are now enabled by default since category checkboxes are removed
+            // Emulator/dashboard packages: Aurora, FSD, Emerald, IngeniouX, Viper360, XeXLoader, Xenu
+            // Homebrew packages: FFPlay, GODUnlocker, XM360, HDDx, XNA, NXE2GOD, XPG, flasher, Plugins, xnotify
         }
 
         public async Task DownloadAndExtractPackagesAsync(
@@ -1608,7 +1624,6 @@ namespace Xbox_360_BadUpdate_USB_Tool
                     }
                 }
             }
-            _currentStep = 0;
 
             var progress = new Progress<int>(percent =>
             {
@@ -1764,13 +1779,22 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 foreach (string dashboardFolder in dashboardFolders)
                 {
                     string dashboardName = Path.GetFileName(dashboardFolder);
-                    // Look specifically for {dashboard}.xex pattern
-                    string expectedXexFile = Path.Combine(dashboardFolder, dashboardName + ".xex");
                     
+                    // Look for {dashboard}.xex pattern
+                    string expectedXexFile = Path.Combine(dashboardFolder, dashboardName + ".xex");
                     if (File.Exists(expectedXexFile))
                     {
                         string relativePath = GetRelativePath(usbPath, expectedXexFile).Replace("\\", "/");
                         dashboards[dashboardName] = relativePath;
+                    }
+                    
+                    // Also look for default.xex
+                    string defaultXexFile = Path.Combine(dashboardFolder, "default.xex");
+                    if (File.Exists(defaultXexFile))
+                    {
+                        string relativePath = GetRelativePath(usbPath, defaultXexFile).Replace("\\", "/");
+                        string displayName = dashboardName + " (default.xex)";
+                        dashboards[displayName] = relativePath;
                     }
                 }
             }
@@ -2061,6 +2085,31 @@ namespace Xbox_360_BadUpdate_USB_Tool
         }
 
         private void statusLabel_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void buttonsPanel_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void Form2_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void driveSelectionPanel_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void titleLabel_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void driveLabel_Click(object sender, EventArgs e)
         {
 
         }
