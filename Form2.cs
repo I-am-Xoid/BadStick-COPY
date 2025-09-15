@@ -38,12 +38,12 @@ namespace Xbox_360_BadUpdate_USB_Tool
             InitializeCheckBoxDict();
             LoadUsbDrives();
 
-            // ShelbyLabel.Text = "BadStick V1.0-Stable Created By Shelby <3";
-            
-            ConfigureWindow();
-            SetDefaultStatesAndHideElements();
-            ApplyDarkTheme();
-            CreateModernLayout();
+            // Initialize modern UI
+            InitializeModernUI();
+            SetupAnimations();
+            LoadBadStickIcon();
+            UpdateLogsTextBox("Welcome to Xbox 360 BadStick Setup Tool");
+            UpdateLogsTextBox("Click Install to begin...");
         }
         
         
@@ -154,96 +154,154 @@ namespace Xbox_360_BadUpdate_USB_Tool
             }
         }
         
-        private void ApplyDarkTheme()
+        private void InitializeModernUI()
         {
-            // Xbox green colors
-            Color xboxGreen = Color.FromArgb(16, 124, 16);
-            Color xboxGreenLight = Color.FromArgb(107, 186, 24);
-            Color darkBackground = Color.FromArgb(15, 15, 15);
-            Color cardBackground = Color.FromArgb(28, 28, 28);
-            Color accentBackground = Color.FromArgb(35, 35, 35);
+            // Modern dark theme setup
+            this.BackColor = Color.FromArgb(20, 20, 20);
+            this.Text = "Xbox 360 BadStick Setup Tool";
             
-            // Main form with medium grey background
-            this.BackColor = Color.FromArgb(235, 235, 235);
-            this.ForeColor = xboxGreen;
-            this.Text = "BadStick Setup";
+            // Hide legacy controls
+            HideLegacyControls();
             
-            // Create header title
-            CreateHeaderTitle();
-            
-            // Tab control with medium grey styling
-            tabControl1.BackColor = Color.FromArgb(235, 235, 235);
-            tabControl1.ForeColor = xboxGreenLight;
-            tabControl1.Appearance = TabAppearance.FlatButtons;
-            tabControl1.ItemSize = new Size(0, 1);
-            tabControl1.SizeMode = TabSizeMode.Fixed;
-            
-            // Tab pages with medium grey look
-            foreach (TabPage tab in tabControl1.TabPages)
+            // Setup modern panels with rounded corners effect
+            SetupModernPanels();
+        }
+        
+        private void HideLegacyControls()
+        {
+            // Hide all old tab controls and legacy UI elements
+            if (tabControl1 != null) tabControl1.Visible = false;
+            if (StartBtn != null) StartBtn.Visible = false;
+            if (ExitBtn != null) ExitBtn.Visible = false;
+            if (RefDrivesBtn != null) RefDrivesBtn.Visible = false;
+            if (label1 != null) label1.Visible = false;
+            if (InfoLabel != null) InfoLabel.Visible = false;
+            if (label8 != null) label8.Visible = false;
+            if (groupBox4 != null) groupBox4.Visible = false;
+            if (warningLabel != null) warningLabel.Visible = false;
+        }
+        
+        private void SetupModernPanels()
+        {
+            // Add subtle border radius effect to panels
+            driveSelectionPanel.Paint += Panel_Paint;
+            optionsPanel.Paint += Panel_Paint;
+            statusPanel.Paint += Panel_Paint;
+        }
+        
+        private void Panel_Paint(object sender, PaintEventArgs e)
+        {
+            Panel panel = sender as Panel;
+            if (panel != null)
             {
-                tab.BackColor = Color.FromArgb(235, 235, 235);
-                tab.ForeColor = xboxGreenLight;
-                tab.Padding = new Padding(20);
+                // Draw subtle border
+                using (Pen pen = new Pen(Color.FromArgb(60, 60, 60), 1))
+                {
+                    e.Graphics.DrawRectangle(pen, 0, 0, panel.Width - 1, panel.Height - 1);
+                }
+            }
+        }
+        
+        private void SetupAnimations()
+        {
+            // Setup hover animations for all buttons
+            SetupButtonHoverEffect(installButton);
+            SetupButtonHoverEffect(discordButton);
+            SetupButtonHoverEffect(githubButton);
+            SetupButtonHoverEffect(supportButton);
+            SetupButtonHoverEffect(browseButton);
+        }
+        
+        private void SetupButtonHoverEffect(Button button)
+        {
+            Color originalColor = button.BackColor;
+            Font originalFont = button.Font;
+            
+            button.MouseEnter += (s, e) => {
+                // Enhanced hover animation with color, scale, and glow effect
+                button.BackColor = ControlPaint.Light(originalColor, 0.3f);
+                button.Font = new Font(originalFont.FontFamily, originalFont.Size + 1, originalFont.Style);
+                button.FlatAppearance.BorderSize = 2;
+                button.FlatAppearance.BorderColor = Color.FromArgb(150, 220, 50);
+            };
+            
+            button.MouseLeave += (s, e) => {
+                button.BackColor = originalColor;
+                button.Font = originalFont;
+                button.FlatAppearance.BorderSize = 0;
+            };
+        }
+        
+        private void LoadBadStickIcon()
+        {
+            try
+            {
+                // Create high-quality bitmap from icon
+                Icon originalIcon = null;
+                string iconPath = Path.Combine(Application.StartupPath, "BadStick Icon.ico");
+                
+                if (File.Exists(iconPath))
+                {
+                    originalIcon = new Icon(iconPath);
+                }
+                else
+                {
+                    // Use embedded resource if available
+                    originalIcon = Xbox_360_BadStick.Properties.Resources.BadStick_Icon;
+                }
+
+                if (originalIcon != null)
+                {
+                    // Create high-resolution bitmap with anti-aliasing
+                    int size = 256; // Use high resolution source
+                    Bitmap highResBitmap = new Bitmap(size, size);
+                    using (Graphics g = Graphics.FromImage(highResBitmap))
+                    {
+                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                        g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                        g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                        
+                        // Draw icon at high resolution
+                        g.DrawIcon(originalIcon, new Rectangle(0, 0, size, size));
+                    }
+                    
+                    BadStickIcon.Image = highResBitmap;
+                }
+            }
+            catch
+            {
+                // If icon loading fails, just continue without it
+                UpdateLogsTextBox("Note: Could not load BadStick icon");
+            }
+        }
+        
+        private void UpdateLogsTextBox(string message)
+        {
+            // Logs removed - now just update status label
+            UpdateStatusLabel(message);
+        }
+        
+        private void UpdateStatusLabel(string status)
+        {
+            if (statusLabel.Owner.InvokeRequired)
+            {
+                statusLabel.Owner.Invoke(new Action<string>(UpdateStatusLabel), status);
+                return;
             }
             
-            // Premium button styling
-            StartBtn.Text = "Install";
-            StartBtn.BackColor = Color.Lime;
-            StartBtn.ForeColor = Color.Black;
-            StartBtn.FlatStyle = FlatStyle.Flat;
-            StartBtn.FlatAppearance.BorderSize = 0;
-            StartBtn.Font = new Font("Segoe UI", 14, FontStyle.Bold);
-            StartBtn.Size = new Size(150, 45);
-            StartBtn.Cursor = Cursors.Hand;
+            statusLabel.Text = status;
+        }
+        
+        private void UpdateProgressBar(int percentage)
+        {
+            if (progressBar.Owner.InvokeRequired)
+            {
+                progressBar.Owner.Invoke(new Action<int>(UpdateProgressBar), percentage);
+                return;
+            }
             
-            ExitBtn.BackColor = Color.FromArgb(60, 60, 60);
-            ExitBtn.ForeColor = xboxGreenLight;
-            ExitBtn.FlatStyle = FlatStyle.Flat;
-            ExitBtn.FlatAppearance.BorderSize = 1;
-            ExitBtn.FlatAppearance.BorderColor = Color.FromArgb(80, 80, 80);
-            ExitBtn.Font = new Font("Segoe UI", 10, FontStyle.Regular);
-            ExitBtn.Cursor = Cursors.Hand;
-            
-            RefDrivesBtn.BackColor = accentBackground;
-            RefDrivesBtn.ForeColor = xboxGreenLight;
-            RefDrivesBtn.FlatStyle = FlatStyle.Flat;
-            RefDrivesBtn.FlatAppearance.BorderSize = 1;
-            RefDrivesBtn.FlatAppearance.BorderColor = xboxGreen;
-            RefDrivesBtn.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-            RefDrivesBtn.Cursor = Cursors.Hand;
-            
-            // Premium ComboBox styling
-            DeviceList.BackColor = cardBackground;
-            DeviceList.ForeColor = xboxGreenLight;
-            DeviceList.FlatStyle = FlatStyle.Flat;
-            DeviceList.Font = new Font("Segoe UI", 11, FontStyle.Regular);
-            DeviceList.Height = DeviceList.Height + 5;
-            
-            // Enhanced Labels with modern typography
-            label1.ForeColor = xboxGreenLight;
-            label1.Font = new Font("Segoe UI", 12, FontStyle.Bold);
-            InfoLabel.ForeColor = xboxGreenLight;
-            label8.ForeColor = xboxGreenLight;
-            
-            // GroupBox styling
-            groupBox4.ForeColor = xboxGreenLight;
-            
-            // Premium status strip with larger support text
-            // statusStrip1.BackColor = Color.FromArgb(25, 25, 25);
-            // statusStrip1.ForeColor = Color.White;
-            // statusStrip1.Font = new Font("Segoe UI", 12, FontStyle.Regular);
-            
-            // Make support button text larger
-            // if (toolStripSplitButton1 != null)
-            // {
-            //     toolStripSplitButton1.Font = new Font("Segoe UI", 12, FontStyle.Bold);
-            // }
-            
-            // Apply modern styling to all controls
-            ApplyDarkThemeToControls(this.Controls);
-            
-            // Add premium modern touches
-            ApplyModernStyling();
+            progressBar.Value = Math.Max(0, Math.Min(100, percentage));
         }
         
         private void CreateHeaderTitle()
@@ -527,12 +585,135 @@ namespace Xbox_360_BadUpdate_USB_Tool
 
         private void UpdateStatus(string text)
         {
-            // Status strip removed - no status updates
+            UpdateStatusLabel(text);
+            UpdateLogsTextBox(text);
         }
 
         private void SetProgressBar(int percent)
         {
-            // ProgressBar.Value = percent;
+            UpdateProgressBar(percent);
+        }
+        
+        // Modern UI Event Handlers
+        private void customPathCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            bool useCustomPath = customPathCheckbox.Checked;
+            customPathTextbox.Enabled = useCustomPath;
+            browseButton.Enabled = useCustomPath;
+            DeviceList.Enabled = !useCustomPath;
+            
+            if (useCustomPath)
+            {
+                UpdateLogsTextBox("Custom path mode enabled - select a folder");
+                DevicePath = "";
+                DriveSet = false;
+            }
+            else
+            {
+                UpdateLogsTextBox("Drive selection mode enabled");
+                if (DeviceList.SelectedItem is UsbDriveItem selectedDrive)
+                {
+                    DevicePath = selectedDrive.RootPath;
+                    DriveSet = true;
+                }
+            }
+        }
+        
+        private void browseButton_Click(object sender, EventArgs e)
+        {
+            using (FolderBrowserDialog dialog = new FolderBrowserDialog())
+            {
+                dialog.Description = "Select destination folder for BadStick installation";
+                dialog.ShowNewFolderButton = true;
+                
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    customPathTextbox.Text = dialog.SelectedPath;
+                    DevicePath = dialog.SelectedPath;
+                    DriveSet = true;
+                    UpdateLogsTextBox($"Custom path selected: {dialog.SelectedPath}");
+                }
+            }
+        }
+        
+        private async void installButton_Click(object sender, EventArgs e)
+        {
+            // Use the original installation process with modern UI feedback
+            UpdateLogsTextBox("Starting installation process...");
+            UpdateStatusLabel("Preparing installation...");
+            UpdateProgressBar(0);
+            
+            // Call the original installation logic but with modern UI updates
+            StartBtn_Click(sender, e);
+        }
+        
+        private void discordButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start("https://discord.gg/xMbKazpkvf");
+                UpdateLogsTextBox("Opening Discord server link...");
+            }
+            catch (Exception ex)
+            {
+                UpdateLogsTextBox($"Error opening Discord: {ex.Message}");
+            }
+        }
+        
+        private void githubButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start("https://github.com/32BitKlepto/BadStick");
+                UpdateLogsTextBox("Opening GitHub repository...");
+            }
+            catch (Exception ex)
+            {
+                UpdateLogsTextBox($"Error opening GitHub: {ex.Message}");
+            }
+        }
+        
+        private void supportButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start("https://www.reddit.com/r/360hacks/");
+                UpdateLogsTextBox("Opening r/360hacks subreddit...");
+            }
+            catch (Exception ex)
+            {
+                UpdateLogsTextBox($"Error opening Reddit: {ex.Message}");
+            }
+        }
+        
+        private void Button_MouseEnter(object sender, EventArgs e)
+        {
+            Button button = sender as Button;
+            if (button != null)
+            {
+                // Smooth hover animation
+                button.BackColor = ControlPaint.Light(button.BackColor, 0.3f);
+                button.Cursor = Cursors.Hand;
+            }
+        }
+        
+        private void Button_MouseLeave(object sender, EventArgs e)
+        {
+            Button button = sender as Button;
+            if (button != null)
+            {
+                // Reset to original color based on button type
+                if (button == installButton)
+                    button.BackColor = Color.FromArgb(107, 186, 24);
+                else if (button == discordButton)
+                    button.BackColor = Color.FromArgb(88, 101, 242);
+                else if (button == githubButton)
+                    button.BackColor = Color.FromArgb(33, 41, 60);
+                else if (button == supportButton)
+                    button.BackColor = Color.FromArgb(255, 165, 0);
+                else if (button == browseButton)
+                    button.BackColor = Color.FromArgb(107, 186, 24);
+            }
         }
 
         private void LoadUsbDrives()
@@ -561,21 +742,109 @@ namespace Xbox_360_BadUpdate_USB_Tool
                     DevicePath = firstDrive.RootPath;
                     DriveSet = true;
                 }
-                warningLabel.Visible = false;
+                UpdateLogsTextBox($"Found {DeviceList.Items.Count} compatible drive(s)");
             }
             else
             {
                 DevicePath = null;
                 DriveSet = false;
-                warningLabel.Text = "Warning: No Fat32 USB Detected";
-                warningLabel.Visible = true;
+                UpdateLogsTextBox("Warning: No FAT32 USB drives detected");
             }
 
             DeviceList.EndUpdate();
-
-            DeviceList.Enabled = false;
-            DeviceList.Enabled = true;
-            DeviceList.Focus();
+            DeviceList.Enabled = !customPathCheckbox.Checked;
+        }
+        
+        // Enhanced installation logic with modern UI feedback
+        private async Task ModernInstallationProcess()
+        {
+            try
+            {
+                // Validate selection
+                if (!DriveSet && string.IsNullOrEmpty(DevicePath))
+                {
+                    UpdateLogsTextBox("Error: No target path selected");
+                    MessageBox.Show("Please select a drive or custom path before installing.", "No Target Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                
+                UpdateStatusLabel("Initializing installation...");
+                UpdateProgressBar(5);
+                
+                // Check selected packages
+                var selectedPackages = GetSelectedPackageCategories();
+                if (selectedPackages.Count == 0)
+                {
+                    UpdateLogsTextBox("Error: No packages selected for installation");
+                    MessageBox.Show("Please select at least one package category to install.", "No Packages Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                
+                UpdateLogsTextBox($"Installing {selectedPackages.Count} package categories to: {DevicePath}");
+                UpdateStatusLabel("Downloading packages...");
+                
+                // Disable UI during installation
+                SetUIEnabled(false);
+                
+                int totalSteps = selectedPackages.Count * 2; // Download + Extract
+                int currentStep = 0;
+                
+                foreach (var category in selectedPackages)
+                {
+                    UpdateLogsTextBox($"Processing {category} packages...");
+                    UpdateProgressBar((currentStep * 100) / totalSteps);
+                    
+                    // Simulate package processing (replace with actual logic)
+                    await Task.Delay(1000);
+                    currentStep++;
+                    
+                    UpdateProgressBar((currentStep * 100) / totalSteps);
+                    currentStep++;
+                }
+                
+                UpdateProgressBar(100);
+                UpdateStatusLabel("Installation completed successfully!");
+                UpdateLogsTextBox("Installation process completed successfully!");
+                
+                MessageBox.Show("BadStick installation completed successfully!", "Installation Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                UpdateLogsTextBox($"Installation error: {ex.Message}");
+                UpdateStatusLabel("Installation failed");
+                MessageBox.Show($"Installation failed: {ex.Message}", "Installation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                SetUIEnabled(true);
+                UpdateProgressBar(0);
+            }
+        }
+        
+        private List<string> GetSelectedPackageCategories()
+        {
+            var selected = new List<string>();
+            
+            if (emulatorsCheckbox.Checked)
+                selected.Add("Emulators");
+            if (homebrewCheckbox.Checked)
+                selected.Add("Homebrew");
+            if (cheatsCheckbox.Checked)
+                selected.Add("Cheats");
+                
+            return selected;
+        }
+        
+        private void SetUIEnabled(bool enabled)
+        {
+            installButton.Enabled = enabled;
+            customPathCheckbox.Enabled = enabled;
+            customPathTextbox.Enabled = enabled && customPathCheckbox.Checked;
+            browseButton.Enabled = enabled && customPathCheckbox.Checked;
+            DeviceList.Enabled = enabled && !customPathCheckbox.Checked;
+            emulatorsCheckbox.Enabled = enabled;
+            homebrewCheckbox.Enabled = enabled;
+            // cheatsCheckbox remains disabled as it's "coming soon"
         }
 
 
@@ -798,10 +1067,82 @@ namespace Xbox_360_BadUpdate_USB_Tool
         }
         private List<PackageInfo> GetSelectedPackages()
         {
+            // Modern UI: Map the new checkboxes to the original package system
+            if (emulatorsCheckbox != null && homebrewCheckbox != null)
+            {
+                // Enable/disable packages based on modern UI selections
+                UpdateLegacyCheckboxes();
+            }
+            
             return _allPackages.Where(pkg =>
                 pkg.AlwaysDownload ||
-                (_checkBoxDict.TryGetValue(pkg.CheckBoxName, out var checkbox) && checkbox.Checked)
+                (_checkBoxDict.ContainsKey(pkg.CheckBoxName) && _checkBoxDict[pkg.CheckBoxName].Checked)
             ).ToList();
+        }
+        
+        private void UpdateLegacyCheckboxes()
+        {
+            // First, enable all packages by default (except rockband and freemyxe which should always be skipped)
+            foreach (var kvp in _checkBoxDict)
+            {
+                string checkboxName = kvp.Key;
+                CheckBox checkbox = kvp.Value;
+                
+                // Always skip rockband and freemyxe
+                if (checkboxName.ToLower().Contains("rockband") || checkboxName.ToLower().Contains("freemyxe"))
+                {
+                    checkbox.Checked = false;
+                    continue;
+                }
+                
+                // Default all other packages to enabled, then filter by category selection
+                checkbox.Checked = true;
+            }
+            
+            // Now apply category-based filtering
+            if (emulatorsCheckbox.Checked)
+            {
+                // Keep emulator/dashboard packages enabled (already set to true above)
+                // These include: Aurora, FSD, Emerald, IngeniouX, Viper360, XeXLoader, Xenu
+            }
+            else
+            {
+                // Disable emulator/dashboard packages when category is deselected
+                if (_checkBoxDict.ContainsKey("AuroraToggle")) AuroraToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("FSDToggle")) FSDToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("EmeraldToggle")) EmeraldToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("IngeniouXToggle")) IngeniouXToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("Viper360Toggle")) Viper360Toggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("XeXLoaderToggle")) XeXLoaderToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("XenuToggle")) XenuToggle.Checked = false;
+            }
+            
+            if (homebrewCheckbox.Checked)
+            {
+                // Keep homebrew packages enabled (already set to true above)
+                // These include: FFPlay, GODUnlocker, XM360, HDDx, XNA, NXE2GOD, XPG, flasher, Plugins, xnotify
+            }
+            else
+            {
+                // Disable homebrew packages when category is deselected
+                if (_checkBoxDict.ContainsKey("FFPlayToggle")) FFPlayToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("GODUnlockerToggle")) GODUnlockerToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("XM360Toggle")) XM360Toggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("HDDxToggle")) HDDxToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("XNAToggle")) XNAToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("NXE2GODToggle")) NXE2GODToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("XPGToggle")) XPGToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("flasherToggle")) flasherToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("PluginsToggle")) PluginsToggle.Checked = false;
+                if (_checkBoxDict.ContainsKey("xnotifyToggle")) xnotifyToggle.Checked = false;
+            }
+            
+            // Cheats category - for future implementation
+            if (!cheatsCheckbox.Checked)
+            {
+                // Disable cheat-related packages when category is deselected
+                // Add cheat package toggles here when they become available
+            }
         }
 
         public async Task DownloadAndExtractPackagesAsync(
@@ -940,6 +1281,30 @@ namespace Xbox_360_BadUpdate_USB_Tool
             // ProgressBar.Value = 100;
         }
 
+
+
+        private void driveComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (driveComboBox.SelectedItem != null)
+            {
+                string selectedDrive = driveComboBox.SelectedItem.ToString();
+                DevicePath = selectedDrive;
+                DriveSet = true;
+                
+                // Update the original DeviceList combobox to maintain compatibility
+                if (DeviceList.Items.Contains(selectedDrive))
+                {
+                    DeviceList.SelectedItem = selectedDrive;
+                }
+                
+                UpdateLogsTextBox($"Drive selected: {selectedDrive}");
+            }
+            else
+            {
+                DevicePath = null;
+                DriveSet = false;
+            }
+        }
 
 
         private void DeviceList_SelectedIndexChanged(object sender, EventArgs e)
@@ -1173,7 +1538,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 await DownloadAndExtractPackagesAsync(payloadPackages, _checkBoxDict, usbPath, progress);
             }
 
-            MessageBox.Show(this, "Done. Your USB is ready to go, thank you for using BadStick. Now go hax that xbox!11!!111!!1!11!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(this, "Done. Your USB is ready to go, thank you for using BadStick. Now go plug it into the xbox 360 to start the Bad Update!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
             
             // Install BadAvatar.zip as final step
             await InstallBadAvatarAsync(usbPath);
@@ -1557,6 +1922,11 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 xeunshackleToggle.Checked = false;
                 xeunshackleToggle.Enabled = false;
             }
+        }
+
+        private void tabPage1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
