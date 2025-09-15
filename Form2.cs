@@ -32,6 +32,9 @@ namespace Xbox_360_BadUpdate_USB_Tool
         {
             InitializeComponent();
             
+            // Enable click-through for transparent areas
+            this.SetStyle(ControlStyles.SupportsTransparentBackColor, true);
+            
             InitializeCheckBoxDict();
             LoadUsbDrives();
 
@@ -160,32 +163,32 @@ namespace Xbox_360_BadUpdate_USB_Tool
             Color cardBackground = Color.FromArgb(28, 28, 28);
             Color accentBackground = Color.FromArgb(35, 35, 35);
             
-            // Main form with modern dark design
-            this.BackColor = darkBackground;
+            // Main form with medium grey background
+            this.BackColor = Color.FromArgb(235, 235, 235);
             this.ForeColor = xboxGreen;
             this.Text = "BadStick Setup";
             
             // Create header title
             CreateHeaderTitle();
             
-            // Tab control with sleek styling
-            tabControl1.BackColor = cardBackground;
+            // Tab control with medium grey styling
+            tabControl1.BackColor = Color.FromArgb(235, 235, 235);
             tabControl1.ForeColor = xboxGreenLight;
             tabControl1.Appearance = TabAppearance.FlatButtons;
             tabControl1.ItemSize = new Size(0, 1);
             tabControl1.SizeMode = TabSizeMode.Fixed;
             
-            // Tab pages with premium look
+            // Tab pages with medium grey look
             foreach (TabPage tab in tabControl1.TabPages)
             {
-                tab.BackColor = darkBackground;
+                tab.BackColor = Color.FromArgb(235, 235, 235);
                 tab.ForeColor = xboxGreenLight;
                 tab.Padding = new Padding(20);
             }
             
             // Premium button styling
             StartBtn.Text = "Install";
-            StartBtn.BackColor = xboxGreen;
+            StartBtn.BackColor = Color.Lime;
             StartBtn.ForeColor = Color.Black;
             StartBtn.FlatStyle = FlatStyle.Flat;
             StartBtn.FlatAppearance.BorderSize = 0;
@@ -274,7 +277,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
             this.MinimumSize = new Size(800, 600);
             this.Size = new Size(800, 600);
             this.FormBorderStyle = FormBorderStyle.None;
-            this.BackColor = Color.FromArgb(25, 25, 25);
+            this.BackColor = Color.FromArgb(220, 220, 220);
             
             // Close button removed as requested
             
@@ -1006,9 +1009,15 @@ namespace Xbox_360_BadUpdate_USB_Tool
 
         private async void StartBtn_Click(object sender, EventArgs e)
         {
+            // Lock the button and change text
+            StartBtn.Enabled = false;
+            StartBtn.Text = "Installing...";
+            
             if (DeviceList.SelectedItem == null)
             {
                 MessageBox.Show("Please select a USB device.", "BadStick Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                StartBtn.Enabled = true;
+                StartBtn.Text = "Start";
                 return;
             }
             
@@ -1022,12 +1031,16 @@ namespace Xbox_360_BadUpdate_USB_Tool
             else
             {
                 MessageBox.Show("Please select a valid USB device.", "BadStick Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                StartBtn.Enabled = true;
+                StartBtn.Text = "Start";
                 return;
             }
 
             if (string.IsNullOrEmpty(usbPath) || !Directory.Exists(usbPath))
             {
                 MessageBox.Show("Please select a valid USB device.", "BadStick Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                StartBtn.Enabled = true;
+                StartBtn.Text = "Start";
                 return;
             }
 
@@ -1044,6 +1057,8 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 if (confirm != DialogResult.Yes)
                 {
                     UpdateStatus("Status: Format cancelled");
+                    StartBtn.Enabled = true;
+                    StartBtn.Text = "Start";
                     return;
                 }
 
@@ -1053,6 +1068,8 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 {
                     MessageBox.Show("Failed to format the device.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     UpdateStatus("Status: Format failed");
+                    StartBtn.Enabled = true;
+                    StartBtn.Text = "Start";
                     return;
                 }
                 UpdateStatus("Status: Format completed. Starting downloads...");
@@ -1066,7 +1083,7 @@ namespace Xbox_360_BadUpdate_USB_Tool
 
             if (skipmainfilesToggle.Checked)
             {
-                string[] mainFiles = { "RBB.zip", "Payload-XeUnshackle.zip", "Payload-FreeMyXe.zip", "XeXMenu.zip" };
+                string[] mainFiles = { "RBB.zip", "Payload-FreeMyXe.zip", "XeXMenu.zip" };
                 packagesToDownload = packagesToDownload
                     .Where(pkg => !mainFiles.Contains(pkg.FileName, StringComparer.OrdinalIgnoreCase))
                     .ToList();
@@ -1133,16 +1150,14 @@ namespace Xbox_360_BadUpdate_USB_Tool
                 // ProgressBar.Value = percent;
             });
 
-            // Separate both payload packages from other packages
+            // Separate payload packages from other packages (BadAvatar now downloads with others)
             var payloadPackages = packagesToDownload.Where(p => 
                 p.FileName.Equals("Payload-XeUnshackle.zip", StringComparison.OrdinalIgnoreCase) ||
-                p.FileName.Equals("Payload.zip", StringComparison.OrdinalIgnoreCase) ||
-                p.FileName.Equals("BadAvatar.zip", StringComparison.OrdinalIgnoreCase)
+                p.FileName.Equals("Payload.zip", StringComparison.OrdinalIgnoreCase)
             ).ToList();
             var otherPackages = packagesToDownload.Where(p => 
                 !p.FileName.Equals("Payload-XeUnshackle.zip", StringComparison.OrdinalIgnoreCase) &&
-                !p.FileName.Equals("Payload.zip", StringComparison.OrdinalIgnoreCase) &&
-                !p.FileName.Equals("BadAvatar.zip", StringComparison.OrdinalIgnoreCase)
+                !p.FileName.Equals("Payload.zip", StringComparison.OrdinalIgnoreCase)
             ).ToList();
             
             // Download and extract other packages first
@@ -1158,8 +1173,69 @@ namespace Xbox_360_BadUpdate_USB_Tool
             }
 
             MessageBox.Show(this, "Done. Your USB is ready to go, thank you for using BadStick. Now go hax that xbox!11!!111!!1!11!", "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            
+            // Install BadAvatar.zip as final step
+            await InstallBadAvatarAsync(usbPath);
+            
+            // Re-enable button after completion
+            StartBtn.Enabled = true;
+            StartBtn.Text = "Start";
+            
             Thread.Sleep(500);
             await CountdownExitStatusAsync();
+        }
+
+        private async Task InstallBadAvatarAsync(string usbPath)
+        {
+            try
+            {
+                UpdateStatus("Status: Installing BadAvatar.zip...");
+                
+                string appTempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
+                if (!Directory.Exists(appTempFolder))
+                {
+                    Directory.CreateDirectory(appTempFolder);
+                }
+                
+                string tempFilePath = Path.Combine(appTempFolder, "BadAvatar.zip");
+                string downloadUrl = "https://github.com/I-am-Xoid/badstick-test/releases/download/packages/BadAvatar.zip";
+                
+                // Download BadAvatar.zip if not already present
+                bool needsDownload = true;
+                if (File.Exists(tempFilePath))
+                {
+                    try
+                    {
+                        using (var archive = ZipFile.OpenRead(tempFilePath))
+                        {
+                            needsDownload = false;
+                        }
+                    }
+                    catch
+                    {
+                        needsDownload = true;
+                    }
+                }
+                
+                if (needsDownload)
+                {
+                    await DownloadFileAsync(downloadUrl, tempFilePath);
+                }
+                
+                if (File.Exists(tempFilePath))
+                {
+                    await ExtractPackageAsync(tempFilePath, usbPath);
+                    UpdateStatus("Status: BadAvatar.zip installed successfully!");
+                }
+                else
+                {
+                    UpdateStatus("Status: Failed to download BadAvatar.zip");
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus($"Status: Error installing BadAvatar.zip: {ex.Message}");
+            }
         }
 
         private async Task ConfigureDashboardAndStealthServer(string usbPath)
